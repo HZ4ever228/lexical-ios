@@ -5,24 +5,57 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import Foundation
+import UIKit
+
+public enum FormatType: String, Codable {
+    case left
+    case right
+    case center
+    case justify
+    case none
+}
 
 open class ElementNode: Node {
   enum CodingKeys: String, CodingKey {
     case children
     case direction
     case indent
-    case format // text alignment. Not supported yet.
+    case format
   }
 
   // TODO: once the various accessor methods are written, make this var private
   var children: [NodeKey] = []
   var direction: Direction?
   var indent: Int = 0
+   public var format: String?
 
   func getDirection() -> Direction? {
     return direction
   }
+    
+    public func getFormat() -> String? {
+        return format
+    }
+    
+    public func getAlignmentParagraphStyleAttributes() -> [NSAttributedString.Key : Any] {
+        let paragraphStyle = NSMutableParagraphStyle()
+        
+        if let format = self.format {
+            switch FormatType(rawValue: format) {
+            case .left:
+                paragraphStyle.alignment = .left
+            case .center:
+                paragraphStyle.alignment = .center
+            case .right:
+                paragraphStyle.alignment = .right
+            case .justify:
+                paragraphStyle.alignment = .justified
+            default:
+                paragraphStyle.alignment = .natural
+            }
+        }
+        return [.paragraphStyle: paragraphStyle]
+    }
 
   override public init() {
     super.init()
@@ -67,6 +100,7 @@ open class ElementNode: Node {
 
     self.direction = try container.decodeIfPresent(Direction.self, forKey: .direction)
     self.indent = try container.decodeIfPresent(Int.self, forKey: .indent) ?? 0
+    self.format = try container.decodeIfPresent(String.self, forKey: .format)
     try super.init(from: decoder)
 
     for node in childNodes {
@@ -80,7 +114,7 @@ open class ElementNode: Node {
     try container.encode(self.getChildren(), forKey: .children)
     try container.encode(self.direction, forKey: .direction)
     try container.encode(self.indent, forKey: .indent)
-    try container.encode("", forKey: .format)
+    try container.encode(self.format, forKey: .format)
   }
 
   @discardableResult
@@ -275,7 +309,8 @@ open class ElementNode: Node {
   public func extractWithChild(
     child: Node,
     selection: BaseSelection?,
-    destination: Destination) -> Bool {
+    destination: Destination
+  ) -> Bool {
     return false
   }
 

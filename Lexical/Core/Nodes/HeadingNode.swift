@@ -68,18 +68,21 @@ public class HeadingNode: ElementNode {
   }
 
   override public func getAttributedStringAttributes(theme: Theme) -> [NSAttributedString.Key: Any] {
+      var attribues: [NSAttributedString.Key: Any] = [:]
     switch tag {
     case .h1:
-      return theme.getValue(.heading, withSubtype: "h1") ?? [.fontSize: HeadingDefaultFontSize.h1.rawValue]
+      attribues = theme.getValue(.heading, withSubtype: "h1") ?? [.fontSize: HeadingDefaultFontSize.h1.rawValue]
     case .h2:
-      return theme.getValue(.heading, withSubtype: "h2") ?? [.fontSize: HeadingDefaultFontSize.h2.rawValue]
+        attribues =  theme.getValue(.heading, withSubtype: "h2") ?? [.fontSize: HeadingDefaultFontSize.h2.rawValue]
     case .h3:
-      return theme.getValue(.heading, withSubtype: "h3") ?? [.fontSize: HeadingDefaultFontSize.h3.rawValue]
+        attribues =  theme.getValue(.heading, withSubtype: "h3") ?? [.fontSize: HeadingDefaultFontSize.h3.rawValue]
     case .h4:
-      return theme.getValue(.heading, withSubtype: "h4") ?? [.fontSize: HeadingDefaultFontSize.h4.rawValue]
+        attribues = theme.getValue(.heading, withSubtype: "h4") ?? [.fontSize: HeadingDefaultFontSize.h4.rawValue]
     case .h5:
-      return theme.getValue(.heading, withSubtype: "h5") ?? [.fontSize: HeadingDefaultFontSize.h5.rawValue]
+        attribues = theme.getValue(.heading, withSubtype: "h5") ?? [.fontSize: HeadingDefaultFontSize.h5.rawValue]
     }
+      let merging = attribues.merging(getAlignmentParagraphStyleAttributes(), uniquingKeysWith: {(_, last) in last})
+      return merging
   }
 
   // MARK: - Mutation

@@ -74,7 +74,7 @@ public class ToolbarPlugin: Plugin {
         _ = self.showLinkActionSheet(url: payload.absoluteString, selection: selection)
         return true
       }
-      return false // shouldn't happen!
+      return false  // shouldn't happen!
     }
   }
 
@@ -95,22 +95,27 @@ public class ToolbarPlugin: Plugin {
   var redoButton: UIBarButtonItem?
   var paragraphButton: UIBarButtonItem?
   var stylingButton: UIBarButtonItem?
-  var linkButton: UIBarButtonItem?
-  var increaseIndentButton: UIBarButtonItem?
-  var decreaseIndentButton: UIBarButtonItem?
-  var insertImageButton: UIBarButtonItem?
+//  var linkButton: UIBarButtonItem?
+//  var increaseIndentButton: UIBarButtonItem?
+//  var decreaseIndentButton: UIBarButtonItem?
+//  var insertImageButton: UIBarButtonItem?
+    var alignLeftButton: UIBarButtonItem?
+    var alignCenterButton: UIBarButtonItem?
+    var alignRightButton: UIBarButtonItem?
 
   private func setUpToolbar() {
-    let undo = UIBarButtonItem(image: UIImage(systemName: "arrow.uturn.backward"),
-                               style: .plain,
-                               target: self,
-                               action: #selector(undo))
+    let undo = UIBarButtonItem(
+      image: UIImage(systemName: "arrow.uturn.backward"),
+      style: .plain,
+      target: self,
+      action: #selector(undo))
     self.undoButton = undo
 
-    let redo = UIBarButtonItem(image: UIImage(systemName: "arrow.uturn.forward"),
-                               style: .plain,
-                               target: self,
-                               action: #selector(redo))
+    let redo = UIBarButtonItem(
+      image: UIImage(systemName: "arrow.uturn.forward"),
+      style: .plain,
+      target: self,
+      action: #selector(redo))
     self.redoButton = redo
 
     let paragraph = UIBarButtonItem(image: UIImage(systemName: "paragraph"), menu: self.paragraphMenu)
@@ -119,28 +124,48 @@ public class ToolbarPlugin: Plugin {
     let styling = UIBarButtonItem(image: UIImage(systemName: "bold.italic.underline"), menu: self.stylingMenu)
     self.stylingButton = styling
 
-    let link = UIBarButtonItem(image: UIImage(systemName: "link"),
-                               style: .plain,
-                               target: self,
-                               action: #selector(link))
-    self.linkButton = link
+//    let link = UIBarButtonItem(image: UIImage(systemName: "link"),
+//                               style: .plain,
+//                               target: self,
+//                               action: #selector(link))
+  //  self.linkButton = link
 
-    let increaseIndent = UIBarButtonItem(image: UIImage(systemName: "increase.indent"),
-                                         style: .plain,
-                                         target: self,
-                                         action: #selector(increaseIndent))
-    self.increaseIndentButton = increaseIndent
+//    let increaseIndent = UIBarButtonItem(image: UIImage(systemName: "increase.indent"),
+//                                         style: .plain,
+//                                         target: self,
+//                                         action: #selector(increaseIndent))
+   // self.increaseIndentButton = increaseIndent
 
-    let decreaseIndent = UIBarButtonItem(image: UIImage(systemName: "decrease.indent"),
-                                         style: .plain,
-                                         target: self,
-                                         action: #selector(decreaseIndent))
-    self.decreaseIndentButton = decreaseIndent
+  //  let decreaseIndent = UIBarButtonItem(image: UIImage(systemName: "decrease.indent"),
+//                                         style: .plain,
+//                                         target: self,
+//                                         action: #selector(decreaseIndent))
+//    self.decreaseIndentButton = decreaseIndent
+//
+//    let insertImage = UIBarButtonItem(image: UIImage(systemName: "photo"), menu: self.imageMenu)
+//    self.insertImageButton = insertImage
+      
+      let alignLeft = UIBarButtonItem(image: UIImage(systemName: "text.alignleft"),
+                                      style: .plain,
+                                      target: self,
+                                      action: #selector(alignLeft))
+      self.alignLeftButton = alignLeft
 
-    let insertImage = UIBarButtonItem(image: UIImage(systemName: "photo"), menu: self.imageMenu)
-    self.insertImageButton = insertImage
+      let alignCenter = UIBarButtonItem(image: UIImage(systemName: "text.aligncenter"),
+                                        style: .plain,
+                                        target: self,
+                                        action: #selector(alignCenter))
+      self.alignCenterButton = alignCenter
 
-    toolbar.items = [undo, redo, paragraph, styling, link, decreaseIndent, increaseIndent, insertImage]
+      let alignRight = UIBarButtonItem(image: UIImage(systemName: "text.alignright"),
+                                       style: .plain,
+                                       target: self,
+                                       action: #selector(alignRight))
+      self.alignRightButton = alignRight
+
+      toolbar.items = [undo, redo, paragraph, styling, //link,
+                      // decreaseIndent, increaseIndent,
+                       alignLeft, alignCenter, alignRight]//, insertImage]
   }
 
   private enum ParagraphMenuSelectedItemType {
@@ -155,21 +180,24 @@ public class ToolbarPlugin: Plugin {
   private var paragraphMenuSelectedItem: ParagraphMenuSelectedItemType = .paragraph
 
   private func updateToolbar() {
+      let str = try? getAttributedStringFromFrontend( )
+      debugPrint("attributed: ", str)
     if let selection = try? getSelection() as? RangeSelection {
       guard let anchorNode = try? selection.anchor.getNode() else { return }
 
       var element =
         isRootNode(node: anchorNode)
         ? anchorNode
-        : findMatchingParent(startingNode: anchorNode, findFn: { e in
-          let parent = e.getParent()
-          return parent != nil && isRootNode(node: parent)
-        })
+        : findMatchingParent(
+          startingNode: anchorNode,
+          findFn: { e in
+            let parent = e.getParent()
+            return parent != nil && isRootNode(node: parent)
+          })
 
       if element == nil {
         element = anchorNode.getTopLevelElementOrThrow()
       }
-
       // derive paragraph style
       if let heading = element as? HeadingNode {
         if heading.getTag() == .h1 {
@@ -213,18 +241,28 @@ public class ToolbarPlugin: Plugin {
       self.undoButton?.isEnabled = self.historyPlugin?.canUndo ?? false
       self.redoButton?.isEnabled = self.historyPlugin?.canRedo ?? false
 
-      // Update links
-      do {
-        let selectedNode = try getSelectedNode(selection: selection)
-        let selectedNodeParent = selectedNode.getParent()
-        if selectedNode is LinkNode || selectedNodeParent is LinkNode {
-          linkButton?.isSelected = true
-        } else {
-          linkButton?.isSelected = false
+//      // Update links
+//      do {
+//        let selectedNode = try getSelectedNode(selection: selection)
+//        let selectedNodeParent = selectedNode.getParent()
+//        if selectedNode is LinkNode || selectedNodeParent is LinkNode {
+//          linkButton?.isSelected = true
+//        } else {
+//          linkButton?.isSelected = false
+//        }
+//      } catch {
+//        print("Error getting the selected Node: \(error.localizedDescription)")
+//      }
+        
+        if let paragraph = element as? ElementNode {
+            if let format = paragraph.getFormat(),
+               let alignment = FormatType(rawValue: format) {
+                debugPrint("alignment: ", alignment)
+                alignLeftButton?.tintColor = alignment == .left ? .systemBlue : .gray
+                alignCenterButton?.tintColor = alignment == .center ? .systemBlue : .gray
+                alignRightButton?.tintColor = alignment == .right ? .systemBlue : .gray
+            }
         }
-      } catch {
-        print("Error getting the selected Node: \(error.localizedDescription)")
-      }
     }
   }
 
@@ -232,48 +270,66 @@ public class ToolbarPlugin: Plugin {
 
   private var paragraphMenuItems: [UIAction] {
     return [
-      UIAction(title: "Normal", image: UIImage(systemName: "paragraph"), state: paragraphMenuSelectedItem == .paragraph ? .on : .off, handler: { [weak self] (_) in
-        self?.setBlock {
-          createParagraphNode()
-        }
-      }),
-      UIAction(title: "Heading 1", image: UIImage(named: "h1"), state: paragraphMenuSelectedItem == .h1 ? .on : .off, handler: { [weak self] (_) in
-        self?.setBlock {
-          createHeadingNode(headingTag: .h1)
-        }
-      }),
-      UIAction(title: "Heading 2", image: UIImage(named: "h2"), state: paragraphMenuSelectedItem == .h2 ? .on : .off, handler: { [weak self] (_) in
-        self?.setBlock {
-          createHeadingNode(headingTag: .h2)
-        }
-      }),
-      UIAction(title: "Code Block", image: UIImage(systemName: "chevron.left.forwardslash.chevron.right"), state: paragraphMenuSelectedItem == .code ? .on : .off, handler: { [weak self] (_) in
-        self?.setBlock {
-          createCodeNode()
-        }
-      }),
-      UIAction(title: "Quote", image: UIImage(systemName: "quote.opening"), state: paragraphMenuSelectedItem == .quote ? .on : .off, handler: { [weak self] (_) in
-        self?.setBlock {
-          createQuoteNode()
-        }
-      }),
-      UIAction(title: "Bulleted List", image: UIImage(systemName: "list.bullet"), state: paragraphMenuSelectedItem == .bullet ? .on : .off, handler: { [weak self] (_) in
-        self?.editor?.dispatchCommand(type: .insertUnorderedList)
-      }),
-      UIAction(title: "Numbered List", image: UIImage(systemName: "list.number"), state: paragraphMenuSelectedItem == .numbered ? .on : .off, handler: { [weak self] (_) in
-        self?.editor?.dispatchCommand(type: .insertOrderedList)
-      })
+      UIAction(
+        title: "Normal", image: UIImage(systemName: "paragraph"), state: paragraphMenuSelectedItem == .paragraph ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.setBlock {
+            createParagraphNode()
+          }
+        }),
+      UIAction(
+        title: "Heading 1", image: UIImage(named: "h1"), state: paragraphMenuSelectedItem == .h1 ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.setBlock {
+            createHeadingNode(headingTag: .h1)
+          }
+        }),
+      UIAction(
+        title: "Heading 2", image: UIImage(named: "h2"), state: paragraphMenuSelectedItem == .h2 ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.setBlock {
+            createHeadingNode(headingTag: .h2)
+          }
+        }),
+      UIAction(
+        title: "Code Block", image: UIImage(systemName: "chevron.left.forwardslash.chevron.right"), state: paragraphMenuSelectedItem == .code ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.setBlock {
+            createCodeNode()
+          }
+        }),
+      UIAction(
+        title: "Quote", image: UIImage(systemName: "quote.opening"), state: paragraphMenuSelectedItem == .quote ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.setBlock {
+            createQuoteNode()
+          }
+        }),
+      UIAction(
+        title: "Bulleted List", image: UIImage(systemName: "list.bullet"), state: paragraphMenuSelectedItem == .bullet ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.editor?.dispatchCommand(type: .insertUnorderedList)
+        }),
+      UIAction(
+        title: "Numbered List", image: UIImage(systemName: "list.number"), state: paragraphMenuSelectedItem == .numbered ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.editor?.dispatchCommand(type: .insertOrderedList)
+        }),
     ]
   }
 
   private var imageMenuItems: [UIAction] {
     return [
-      UIAction(title: "Insert Sample Image", image: UIImage(systemName: "photo"), handler: { [weak self] (_) in
-        self?.insertSampleImage()
-      }),
-      UIAction(title: "Insert Selectable Image", image: UIImage(systemName: "photo"), handler: { [weak self] (_) in
-        self?.insertSelectableImage()
-      }),
+      UIAction(
+        title: "Insert Sample Image", image: UIImage(systemName: "photo"),
+        handler: { [weak self] (_) in
+          self?.insertSampleImage()
+        }),
+      UIAction(
+        title: "Insert Selectable Image", image: UIImage(systemName: "photo"),
+        handler: { [weak self] (_) in
+          self?.insertSelectableImage()
+        }),
     ]
   }
 
@@ -285,21 +341,31 @@ public class ToolbarPlugin: Plugin {
       }
     }
     return [
-      UIAction(title: "Bold", image: UIImage(systemName: "bold"), state: rangeSelection?.hasFormat(type: .bold) ?? false ? .on : .off, handler: { [weak self] (_) in
-        self?.toggleBold()
-      }),
-      UIAction(title: "Italic", image: UIImage(systemName: "italic"), state: rangeSelection?.hasFormat(type: .italic) ?? false ? .on : .off, handler: { [weak self] (_) in
-        self?.toggleItalic()
-      }),
-      UIAction(title: "Underline", image: UIImage(systemName: "underline"), state: rangeSelection?.hasFormat(type: .underline) ?? false ? .on : .off, handler: { [weak self] (_) in
-        self?.toggleUnderline()
-      }),
-      UIAction(title: "Strikethrough", image: UIImage(systemName: "strikethrough"), state: rangeSelection?.hasFormat(type: .strikethrough) ?? false ? .on : .off, handler: { [weak self] (_) in
-        self?.toggleStrikethrough()
-      }),
-      UIAction(title: "Inline Code", image: UIImage(systemName: "chevron.left.forwardslash.chevron.right"), state: rangeSelection?.hasFormat(type: .code) ?? false ? .on : .off, handler: { [weak self] (_) in
-        self?.toggleInlineCode()
-      }),
+      UIAction(
+        title: "Bold", image: UIImage(systemName: "bold"), state: rangeSelection?.hasFormat(type: .bold) ?? false ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.toggleBold()
+        }),
+      UIAction(
+        title: "Italic", image: UIImage(systemName: "italic"), state: rangeSelection?.hasFormat(type: .italic) ?? false ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.toggleItalic()
+        }),
+      UIAction(
+        title: "Underline", image: UIImage(systemName: "underline"), state: rangeSelection?.hasFormat(type: .underline) ?? false ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.toggleUnderline()
+        }),
+      UIAction(
+        title: "Strikethrough", image: UIImage(systemName: "strikethrough"), state: rangeSelection?.hasFormat(type: .strikethrough) ?? false ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.toggleStrikethrough()
+        }),
+      UIAction(
+        title: "Inline Code", image: UIImage(systemName: "chevron.left.forwardslash.chevron.right"), state: rangeSelection?.hasFormat(type: .code) ?? false ? .on : .off,
+        handler: { [weak self] (_) in
+          self?.toggleInlineCode()
+        }),
     ]
   }
 
@@ -355,6 +421,33 @@ public class ToolbarPlugin: Plugin {
   @objc private func decreaseIndent() {
     editor?.dispatchCommand(type: .outdentContent, payload: nil)
   }
+    @objc private func alignLeft() {
+        applyParagraphAlignment(.left)
+    }
+
+    @objc private func alignCenter() {
+        applyParagraphAlignment(.center)
+    }
+
+    @objc private func alignRight() {
+        applyParagraphAlignment(.right)
+    }
+    
+    private func applyParagraphAlignment(_ alignment: FormatType) {
+        try? editor?.update {
+            guard
+                let selection = try? getSelection() as? RangeSelection,
+                let node = try? selection.anchor.getNode().getTopLevelElementOrThrow()
+            else { return }
+            debugPrint("applyParagraphAlignment to node: ", node)
+            
+            node.format = alignment.rawValue
+        }
+        
+        if let currentState = editor?.getEditorState() {
+            try? editor?.setEditorState(currentState)
+        }
+    }
 
   private func insertSampleImage() {
     guard let url = Bundle.main.url(forResource: "lexical-logo", withExtension: "png") else {

@@ -10,8 +10,11 @@ import UIKit
 internal class InputDelegateProxy: NSObject, UITextInputDelegate {
     @available(iOS 18.4, *)
     func conversationContext(_ context: UIConversationContext?, didChange textInput: (any UITextInput)?) {
+        if let targetInputDelegate, isSuspended == false {
+          targetInputDelegate.conversationContext(context, didChange: textInput)
+        }
     }
-  
+    
   internal weak var targetInputDelegate: UITextInputDelegate?
   internal var isSuspended: Bool = false
 

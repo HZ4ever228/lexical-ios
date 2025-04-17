@@ -28,13 +28,9 @@ public class ParagraphNode: ElementNode {
     Self(key)
   }
 
-  override public func getAttributedStringAttributes(theme: Theme) -> [NSAttributedString.Key: Any] {
-    if let paragraph = theme.paragraph {
-      return paragraph
+    override public func getAttributedStringAttributes(theme: Theme) -> [NSAttributedString.Key: Any] {
+        return self.getAlignmentParagraphStyleAttributes()
     }
-
-    return [:]
-  }
 
   override open func insertNewAfter(selection: RangeSelection?) throws -> ParagraphNode? {
     let newElement = createParagraphNode()
