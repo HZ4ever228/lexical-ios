@@ -220,7 +220,11 @@ open class TextNode: Node {
     try super.init(from: decoder)
 
     self.text = try container.decode(String.self, forKey: .text)
-    self.mode = try container.decode(Mode.self, forKey: .mode)
+      if let mode = try? container.decode(Mode.self, forKey: .mode) {
+          self.mode = mode
+      } else if let modeString = try? container.decode(String.self, forKey: .mode) {
+          self.mode = Mode(rawValue: modeString) ?? .normal
+      }
     let serializedFormat = try container.decode(SerializedTextFormat.self, forKey: .format)
     self.format = SerializedTextFormat.convertToTextFormat(from: serializedFormat)
     let serializedDetail = try container.decode(SerializedTextNodeDetail.self, forKey: .detail)
