@@ -229,17 +229,19 @@ open class TextNode: Node {
     self.format = SerializedTextFormat.convertToTextFormat(from: serializedFormat)
     let serializedDetail = try container.decode(SerializedTextNodeDetail.self, forKey: .detail)
     self.detail = SerializedTextNodeDetail.convertToTextDetail(from: serializedDetail)
-    self.style = try container.decode(String.self, forKey: .style)
+      if let style = try? container.decode(String.self, forKey: .style) {
+          self.style = style
+      }
   }
 
   override open func encode(to encoder: Encoder) throws {
     try super.encode(to: encoder)
     var container = encoder.container(keyedBy: CodingKeys.self)
-    try container.encode(self.text, forKey: .text)
-    try container.encode(self.mode, forKey: .mode)
-    try container.encode(SerializedTextFormat.convertToSerializedTextFormat(from: self.format).rawValue, forKey: .format)
-    try container.encode(SerializedTextNodeDetail.convertToSerializedTextNodeDetail(from: self.detail).rawValue, forKey: .detail)
-    try container.encode(self.style, forKey: .style)
+    try? container.encode(self.text, forKey: .text)
+    try? container.encode(self.mode, forKey: .mode)
+    try? container.encode(SerializedTextFormat.convertToSerializedTextFormat(from: self.format).rawValue, forKey: .format)
+    try? container.encode(SerializedTextNodeDetail.convertToSerializedTextNodeDetail(from: self.detail).rawValue, forKey: .detail)
+    try? container.encode(self.style, forKey: .style)
   }
 
   override public func getTextPart() -> String {
